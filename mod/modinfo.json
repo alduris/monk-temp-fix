@@ -1,0 +1,11 @@
+{
+    "id": "alduris.monktempfix",
+    "name": "Monk Temp Fix",
+    "version": "0.0.0",
+    "authors": "Alduris",
+    "description": "Fixes monk not loading in rain world 1.9.15",
+    "target_game_version": "v1.9.15",
+    "requirements": [],
+    "requirements_names": [],
+    "checksum_override_version": true
+}

@@ -1,4 +1,6 @@
 ﻿using BepInEx;
+using MonoMod.Cil;
+using System;
 using System.Security.Permissions;
 
 // Allows access to private members
@@ -6,28 +8,34 @@ using System.Security.Permissions;
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618
 
-namespace TestMod;
+namespace MonkTempFix;
 
-[BepInPlugin("com.author.testmod", "Test Mod", "0.1.0")]
+[BepInPlugin("alduris.monktempfix", "Monk Temp Fix", "0.0.0")]
 sealed class Plugin : BaseUnityPlugin
 {
-    bool init;
-
     public void OnEnable()
     {
-        // Add hooks here
-        On.RainWorld.OnModsInit += OnModsInit;
+        IL.HUD.Map.ctor += Map_ctor;
     }
 
-    private void OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
+    public void OnDisable()
     {
-        orig(self);
+        IL.HUD.Map.ctor -= Map_ctor;
+    }
 
-        if (init) return;
-
-        init = true;
-
-        // Initialize assets, your mod config, and anything that uses RainWorld here
-        Logger.LogDebug("Hello world!");
+    private void Map_ctor(ILContext il)
+    {
+        try
+        {
+            var c = new ILCursor(il);
+            c.GotoNext(x => x.MatchLdstr("gate condition on map, karma"));
+            c.GotoNext(MoveType.After, x => x.MatchLdfld<HUD.Map.MapData.GateData>("karma"));
+            c.EmitDelegate((RegionGate.GateRequirement req) => req ?? RegionGate.GateRequirement.OneKarma);
+        }
+        catch(Exception e)
+        {
+            Logger.LogError("Failed to apply!");
+            Logger.LogError(e);
+        }
     }
 }
